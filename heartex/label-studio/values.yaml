@@ -71,7 +71,7 @@ global:
         storageClass: ""
         size: 10Gi
         accessModes:
-          - ReadWriteOnce
+          - ReadWriteMany
         annotations: {}
         existingClaim: ""
         resourcePolicy: ""
@@ -132,7 +132,7 @@ app:
 
   deploymentAnnotations: { }
   
-  replicas: 1
+  replicas: 3
 
   NameOverride: ""
   FullnameOverride: ""
@@ -634,7 +634,7 @@ cronjob:
   FullnameOverride: ""
 
 metrics:
-  enabled: false
+  enabled: true
   serviceMonitor:
     enabled: false
     annotations: {}
@@ -648,7 +648,7 @@ metrics:
     selector: {}
 
   uwsgiExporter:
-    enabled: false
+    enabled: true
     image:
       registry: "docker.io"
       repository: "timonwong/uwsgi-exporter"
