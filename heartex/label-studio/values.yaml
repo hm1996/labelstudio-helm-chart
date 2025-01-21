@@ -132,7 +132,7 @@ app:
 
   deploymentAnnotations: { }
   
-  replicas: 3
+  replicas: 1
 
   NameOverride: ""
   FullnameOverride: ""

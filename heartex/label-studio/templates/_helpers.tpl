@@ -4,6 +4,9 @@ Expand the name
 {{- define "ls-app.name" -}}
 {{- default "ls-app" .Values.app.NameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
+{{- define "ls-web.name" -}}
+{{- default "ls-web" .Values.app.NameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
 {{- define "ls-rqworker.name" -}}
 {{- default "ls-rqworker" .Values.rqworker.NameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
@@ -35,6 +38,24 @@ If release name contains chart name it will be used as a full name.
 {{- .Values.app.FullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default "ls-app" .Values.app.FullnameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create a default fully qualified web name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "ls-web.fullname" -}}
+{{- if .Values.app.FullnameOverride }}
+{{- .Values.app.FullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default "ls-web" .Values.app.FullnameOverride }}
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -107,10 +128,30 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
+Common labels for ls-web
+*/}}
+{{- define "ls-web.labels" -}}
+helm.sh/chart: {{ include "ls.chart" . }}
+{{ include "ls-web.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
 Selector labels for ls-app
 */}}
 {{- define "ls-app.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "ls-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Selector labels for ls-web
+*/}}
+{{- define "ls-web.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "ls-web.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
@@ -510,7 +551,7 @@ Set's common environment variables
 {{- end }}
 {{- if not .Values.global.extraEnvironmentVars.LS_APP_SERVICE_NAME }}
 - name: LS_APP_SERVICE_NAME
-  value: "{{ include "ls-app.fullname" . }}.{{ .Release.Namespace }}"
+  value: "{{ include "ls-app.fullname" . }}-app.{{ .Release.Namespace }}"
 {{- end }}
 {{- if not .Values.global.extraEnvironmentVars.LS_APP_SERVICE_PORT }}
 - name: LS_APP_SERVICE_PORT
